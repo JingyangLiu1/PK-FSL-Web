@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: prior-knowledge-few-shot-workflow
+    env: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
