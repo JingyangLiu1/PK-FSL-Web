@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PK-FSL Framework-Based Process Optimization Platform</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="page-glow page-glow--left"></div>
+    <div class="page-glow page-glow--right"></div>
+
+    <div hidden aria-hidden="true">
+      <span id="sessionId">NOT_CREATED</span>
+      <span id="priorFileMeta">NONE</span>
+      <span id="expFileMeta">NONE</span>
+      <span id="testFileMeta">NONE</span>
+    </div>
+
+    <header class="topbar">
+      <div class="container hero">
+        <div>
+          <div class="eyebrow">Prior Knowledge Guided Workflow</div>
+          <h1 class="hero-title">PK-FSL Framework-Based Process Optimization Platform</h1>
+        </div>
+      </div>
+    </header>
+
+    <main class="container workflow">
+      <section class="card card--accent">
+        <div class="card-head">
+          <div>
+            <h2>Session And Samples</h2>
+            <p class="card-desc">Create a session first, then load sample files or upload your own files in each module.</p>
+          </div>
+          <div class="badge">Session</div>
+        </div>
+        <div class="row wrap">
+          <button id="btnNewSession">Create Session</button>
+          <button id="btnLoadPriorSample">Load Teacher Sample</button>
+          <button id="btnLoadExpSample">Load Experiment Sample</button>
+          <button id="btnLoadTestSample">Load Test Sample</button>
+        </div>
+        <div class="progress" id="progress-session"><div class="progress__bar"></div></div>
+        <div class="status" id="statusSession">Waiting for a session.</div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Teacher Model</h2>
+            <p class="card-desc">Upload prior data, choose a sheet, select target and base features, then train the teacher model.</p>
+          </div>
+          <div class="badge">Prior data</div>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel">
+            <h3>Upload And Read</h3>
+            <div class="upload-box">
+              <div class="file-input">
+                <input id="priorFileInput" class="file-input__native" type="file" accept=".xlsx,.xls" />
+                <button type="button" class="file-input__trigger" data-file-trigger="priorFileInput">Choose File</button>
+                <span class="file-input__name" id="priorFileName">No file chosen</span>
+              </div>
+              <button id="btnUploadPrior">Upload File</button>
+            </div>
+            <div class="sheet-picker">
+              <div class="selector-head">
+                <span>Sheet picker</span>
+                <span class="selector-tip">Click after upload</span>
+              </div>
+              <div class="chip-grid" id="priorSheetList"></div>
+            </div>
+            <div class="row wrap">
+              <label>sheet</label>
+              <input id="priorSheet" placeholder="auto after upload" />
+              <label>header_row</label>
+              <input id="priorHeader" value="0" />
+              <label>index_col</label>
+              <input id="priorIndex" placeholder="blank" />
+            </div>
+            <div class="row wrap">
+              <label>missing</label>
+              <select id="priorNA">
+                <option value="keep">keep</option>
+                <option value="drop">drop rows</option>
+                <option value="mean">mean fill</option>
+                <option value="median">median fill</option>
+              </select>
+              <label>outlier</label>
+              <select id="priorOut">
+                <option value="keep">keep</option>
+                <option value="clip_iqr">clip_iqr</option>
+                <option value="drop_iqr">drop_iqr</option>
+              </select>
+            </div>
+            <div class="row wrap">
+              <button id="btnPreviewPrior">Read Columns</button>
+              <button id="btnSetPrior">Save Teacher Data</button>
+              <button id="btnSaveTeacherSelection">Save Teacher Features</button>
+            </div>
+            <div class="progress" id="progress-prior"><div class="progress__bar"></div></div>
+            <div class="status" id="statusPrior">Waiting for teacher data.</div>
+          </div>
+
+          <div class="panel">
+            <h3>Feature Selection</h3>
+            <div class="meta-note" id="priorColumnsMeta">No columns loaded yet.</div>
+            <div class="selector-block">
+              <div class="selector-head">
+                <span>Target</span>
+                <span class="selector-tip">single</span>
+              </div>
+              <div class="chip-grid" id="priorTargetList"></div>
+            </div>
+            <div class="selector-block">
+              <div class="selector-head">
+                <span>Base features</span>
+                <span class="selector-tip">multi</span>
+              </div>
+              <div class="chip-grid" id="priorBaseList"></div>
+            </div>
+            <div class="status" id="statusTeacherFeatures">Choose teacher variables first.</div>
+          </div>
+        </div>
+
+        <div class="result-grid result-grid--large">
+          <div class="result-card">
+            <h3>Teacher Model Comparison</h3>
+            <button type="button" class="image-button" data-image-target="teacherComparePng" data-image-title="Teacher Model Comparison">
+              <img id="teacherComparePng" class="img img--hero" alt="teacher compare" />
+            </button>
+            <div class="link-row">
+              <a id="teacherCsvLink" class="link" target="_blank"></a>
+              <a id="teacherCompareCsvLink" class="link" target="_blank"></a>
+              <a id="teacherModelLink" class="link" target="_blank"></a>
+            </div>
+          </div>
+          <div class="result-card">
+            <h3>Partial Dependence</h3>
+            <button type="button" class="image-button" data-image-target="teacherPdp" data-image-title="Partial Dependence">
+              <img id="teacherPdp" class="img img--hero" alt="teacher pdp" />
+            </button>
+          </div>
+        </div>
+
+        <div class="row wrap">
+          <label>cv_folds</label><input id="teacherCv" value="5" />
+          <label>n_iter</label><input id="teacherIter" value="30" />
+          <button id="btnTeacher">Train Teacher Model</button>
+        </div>
+        <div class="status" id="statusTeacher">Teacher model not trained yet.</div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Experiment Data</h2>
+            <p class="card-desc">Upload experiment data, choose target, base features, and aux features, then compare models.</p>
+          </div>
+          <div class="badge">Experiment data</div>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel">
+            <h3>Upload And Read</h3>
+            <div class="upload-box">
+              <div class="file-input">
+                <input id="expFileInput" class="file-input__native" type="file" accept=".xlsx,.xls" />
+                <button type="button" class="file-input__trigger" data-file-trigger="expFileInput">Choose File</button>
+                <span class="file-input__name" id="expFileName">No file chosen</span>
+              </div>
+              <button id="btnUploadExp">Upload File</button>
+            </div>
+            <div class="sheet-picker">
+              <div class="selector-head">
+                <span>Sheet picker</span>
+                <span class="selector-tip">Click after upload</span>
+              </div>
+              <div class="chip-grid" id="expSheetList"></div>
+            </div>
+            <div class="row wrap">
+              <label>sheet</label>
+              <input id="expSheet" placeholder="auto after upload" />
+              <label>header_row</label>
+              <input id="expHeader" value="0" />
+              <label>index_col</label>
+              <input id="expIndex" placeholder="blank" />
+            </div>
+            <div class="row wrap">
+              <label>missing</label>
+              <select id="expNA">
+                <option value="keep">keep</option>
+                <option value="drop">drop rows</option>
+                <option value="mean">mean fill</option>
+                <option value="median">median fill</option>
+              </select>
+              <label>outlier</label>
+              <select id="expOut">
+                <option value="keep">keep</option>
+                <option value="clip_iqr">clip_iqr</option>
+                <option value="drop_iqr">drop_iqr</option>
+              </select>
+            </div>
+            <div class="row wrap">
+              <button id="btnPreviewExp">Read Columns</button>
+              <button id="btnSetExp">Save Experiment Data</button>
+              <button id="btnSaveExpSelection">Save Experiment Features</button>
+            </div>
+            <div class="progress" id="progress-exp"><div class="progress__bar"></div></div>
+            <div class="status" id="statusExp">Waiting for experiment data.</div>
+          </div>
+
+          <div class="panel">
+            <h3>Feature Selection</h3>
+            <div class="meta-note" id="expColumnsMeta">No columns loaded yet.</div>
+            <div class="selector-block">
+              <div class="selector-head">
+                <span>Target</span>
+                <span class="selector-tip">single</span>
+              </div>
+              <div class="chip-grid" id="expTargetList"></div>
+            </div>
+            <div class="selector-block">
+              <div class="selector-head">
+                <span>Base features</span>
+                <span class="selector-tip">multi</span>
+              </div>
+              <div class="chip-grid" id="expBaseList"></div>
+            </div>
+            <div class="selector-block">
+              <div class="selector-head">
+                <span>Aux features</span>
+                <span class="selector-tip">multi</span>
+              </div>
+              <div class="chip-grid" id="expAuxList"></div>
+            </div>
+            <div class="status" id="statusExpFeatures">Choose experiment variables first.</div>
+          </div>
+        </div>
+
+        <div class="result-grid result-grid--large">
+          <div class="result-card">
+            <h3>Base Model Comparison</h3>
+            <button type="button" class="image-button" data-image-target="comparePng" data-image-title="Base Model Comparison">
+              <img id="comparePng" class="img img--hero" alt="compare chart" />
+            </button>
+            <div class="link-row">
+              <a id="compareCsvLink" class="link" target="_blank"></a>
+            </div>
+          </div>
+          <div class="result-card">
+            <h3>Aux Feature Importance</h3>
+            <button type="button" class="image-button" data-image-target="featSelPng" data-image-title="Aux Feature Importance">
+              <img id="featSelPng" class="img img--hero" alt="feature importance" />
+            </button>
+            <div class="link-row">
+              <a id="featSelCsvLink" class="link" target="_blank"></a>
+            </div>
+          </div>
+        </div>
+
+        <div class="row wrap">
+          <label>seed</label><input id="seed" value="42" />
+          <button id="btnSetFeatures">Save Current Experiment Features</button>
+          <label>n_iter</label><input id="compareIter" value="30" />
+          <button id="btnCompare">Run Model Comparison</button>
+          <label>top_k</label><input id="topK" value="5" />
+          <button id="btnFeatSel">Run Feature Selection</button>
+        </div>
+        <div class="progress" id="progress-compare"><div class="progress__bar"></div></div>
+        <div class="status" id="statusCompare">Model comparison not started yet.</div>
+        <div class="status" id="statusFeatSel">Feature selection not started yet.</div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>GAN Augmentation</h2>
+          </div>
+        </div>
+        <div class="row wrap">
+          <label>epochs</label><input id="ganEpochs" value="500" />
+          <label>n_generate</label><input id="ganN" value="200" />
+          <label>latent_dim</label><input id="ganLatent" value="32" />
+          <label>batch</label><input id="ganBatch" value="32" />
+          <button id="btnGan">Run GAN</button>
+          <a id="ganCsvLink" class="link" target="_blank"></a>
+        </div>
+        <div class="progress" id="progress-gan"><div class="progress__bar"></div></div>
+        <div class="result-grid result-grid--large">
+          <div class="result-card">
+            <h3>Target Distribution</h3>
+            <button type="button" class="image-button" data-image-target="ganViolin" data-image-title="Target Distribution">
+              <img id="ganViolin" class="img img--hero" alt="gan violin" />
+            </button>
+          </div>
+          <div class="result-card">
+            <h3>GAN Loss Curves</h3>
+            <button type="button" class="image-button" data-image-target="ganLossPng" data-image-title="GAN Loss Curves">
+              <img id="ganLossPng" class="img img--hero" alt="gan loss" />
+            </button>
+            <div class="link-row">
+              <a id="ganLossCsvLink" class="link" target="_blank"></a>
+            </div>
+          </div>
+        </div>
+        <div class="status" id="statusGan">GAN not started yet.</div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>GAN Screening</h2>
+          </div>
+        </div>
+        <div class="row wrap">
+          <label>pred_abs_tol</label><input id="screenTol" value="0.05" />
+          <label>max_keep</label><input id="screenKeep" value="200" />
+          <button id="btnScreen">Run Screening</button>
+          <a id="screenCsvLink" class="link" target="_blank"></a>
+        </div>
+        <div class="progress" id="progress-screen"><div class="progress__bar"></div></div>
+        <div class="result-grid result-grid--single">
+          <div class="result-card">
+            <h3>Screening Error Distribution</h3>
+            <button type="button" class="image-button" data-image-target="screenPng" data-image-title="Screening Error Distribution">
+              <img id="screenPng" class="img img--hero" alt="screen result" />
+            </button>
+          </div>
+        </div>
+        <div class="status" id="statusScreen">GAN screening not started yet.</div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Distillation And Final Model</h2>
+          </div>
+        </div>
+        <div class="row wrap">
+          <label>alpha</label><input id="alpha" value="0.3" />
+          <label>method</label>
+          <select id="distillMethod">
+            <option value="soft_label">soft_label</option>
+            <option value="teacher_as_feature">teacher_as_feature</option>
+            <option value="both">both</option>
+          </select>
+          <button id="btnFinal">Train Final Model</button>
+        </div>
+        <div class="progress" id="progress-final"><div class="progress__bar"></div></div>
+        <div class="result-grid result-grid--single">
+          <div class="result-card">
+            <h3>Final Model Comparison</h3>
+            <button type="button" class="image-button" data-image-target="finalComparePng" data-image-title="Final Model Comparison">
+              <img id="finalComparePng" class="img img--hero" alt="final comparison" />
+            </button>
+            <div class="link-row">
+              <a id="finalModelLink" class="link" target="_blank"></a>
+              <a id="finalCsvLink" class="link" target="_blank"></a>
+            </div>
+          </div>
+        </div>
+        <div class="status" id="statusFinal">Final model not trained yet.</div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Multi-Objective Optimization</h2>
+          </div>
+        </div>
+        <div class="row wrap">
+          <label>n_samples</label><input id="optN" value="3000" />
+          <label>mode</label>
+          <select id="optMode">
+            <option value="maximize_target_minimize_l2">maximize_target + minimize_dist2</option>
+            <option value="maximize_target_minimize_cost">maximize_target + minimize_custom_cost</option>
+          </select>
+          <label>cost_formula</label>
+          <textarea id="costFormula" rows="2" placeholder="Example: 10**(lgO3TOC0+1.7)*1.2*0.477"></textarea>
+          <button id="btnOpt">Run Optimization</button>
+          <a id="optParetoCsvLink" class="link" target="_blank"></a>
+          <a id="optAllCsvLink" class="link" target="_blank"></a>
+        </div>
+        <div class="progress" id="progress-opt"><div class="progress__bar"></div></div>
+        <div class="result-grid result-grid--single">
+          <div class="result-card">
+            <h3>Pareto Plot</h3>
+            <button type="button" class="image-button" data-image-target="optPng" data-image-title="Pareto Plot">
+              <img id="optPng" class="img img--hero" alt="pareto" />
+            </button>
+          </div>
+        </div>
+        <div class="status" id="statusOpt">Optimization not started yet.</div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Test Validation</h2>
+            <p class="card-desc">This module compares base models and the final model together, then shows metrics and prediction details.</p>
+          </div>
+          <div class="badge">Test validation</div>
+        </div>
+
+        <div class="panel-grid panel-grid--stack">
+          <div class="panel">
+            <h3>Upload Test Data</h3>
+            <div class="upload-box">
+              <div class="file-input">
+                <input id="testFileInput" class="file-input__native" type="file" accept=".xlsx,.xls,.csv" />
+                <button type="button" class="file-input__trigger" data-file-trigger="testFileInput">Choose File</button>
+                <span class="file-input__name" id="testFileName">No file chosen</span>
+              </div>
+              <button id="btnUploadTest">Upload File</button>
+            </div>
+            <div class="sheet-picker">
+              <div class="selector-head">
+                <span>Sheet picker</span>
+                <span class="selector-tip">CSV does not need a sheet</span>
+              </div>
+              <div class="chip-grid" id="testSheetList"></div>
+            </div>
+            <div class="row wrap">
+              <label>sheet</label><input id="testSheet" placeholder="auto after upload" />
+              <button id="btnTest">Run Validation</button>
+              <a id="testPredCsvLink" class="link" target="_blank"></a>
+              <a id="testSummaryCsvLink" class="link" target="_blank"></a>
+            </div>
+            <div class="progress" id="progress-test"><div class="progress__bar"></div></div>
+            <div class="status" id="statusTest">Waiting for test data.</div>
+          </div>
+
+          <div class="panel">
+            <h3>Replace Experiment Dataset</h3>
+            <div class="row wrap">
+              <label class="inline-choice"><input type="radio" name="mergeTest" value="no" checked /> No</label>
+              <label class="inline-choice"><input type="radio" name="mergeTest" value="yes" /> Yes</label>
+              <button id="btnMergeTest">Merge Test Into Experiment</button>
+            </div>
+            <div class="status" id="statusMergeTest">By default, experiment data will not be replaced.</div>
+          </div>
+        </div>
+
+        <div class="result-grid result-grid--single">
+          <div class="result-card">
+            <h3>Test Model Comparison</h3>
+            <button type="button" class="image-button" data-image-target="testComparePng" data-image-title="Test Model Comparison">
+              <img id="testComparePng" class="img img--hero" alt="test comparison" />
+            </button>
+          </div>
+        </div>
+
+        <div class="table-grid">
+          <div class="table-shell">
+            <div class="table-head">
+              <h3>All Model Metrics</h3>
+            </div>
+            <div id="testSummaryTable" class="table-wrap empty-hint">Validation results will be shown here.</div>
+          </div>
+          <div class="table-shell">
+            <div class="table-head">
+              <h3>Prediction Details</h3>
+            </div>
+            <div id="testPredictionTable" class="table-wrap empty-hint">Prediction details will be shown here.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Run Logs</h2>
+          </div>
+        </div>
+        <div class="row wrap">
+          <button id="btnLogs">Refresh Logs</button>
+        </div>
+        <pre class="out" id="outLogs"></pre>
+      </section>
+    </main>
+
+    <div class="lightbox" id="imageLightbox" hidden>
+      <button type="button" class="lightbox__backdrop" id="lightboxClose" aria-label="Close image preview"></button>
+      <div class="lightbox__dialog" role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
+        <div class="lightbox__head">
+          <strong id="lightboxTitle">Image Preview</strong>
+          <button type="button" class="lightbox__button" id="lightboxCloseButton">Close</button>
+        </div>
+        <div class="lightbox__body">
+          <img id="lightboxImage" class="lightbox__image" alt="image preview" />
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container muted">Workflow order: teacher model, experiment data, downstream modules, test validation, logs.</div>
+    </footer>
+
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
