@@ -1,0 +1,8 @@
+-r requirements.txt
+
+# Enable 5th base model from  (XGB)
+xgboost>=2.0
+
+# Enable Step 6 Tabular GAN
+torch>=2.2
+
